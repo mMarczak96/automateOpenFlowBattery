@@ -1,0 +1,40 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+  =========                 |
+  \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+   \\    /   O peration     | Website:  https://openfoam.org
+    \\  /    A nd           | Version:  10
+     \\/     M anipulation  |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    format      ascii;
+    class       dictionary;
+    location    "constant/negative_electrode";
+    object      solutionProperties;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+type                newVanadiumSolutionSulfateTransport;
+speciesNumber       5;
+
+vanadiumComponents       (V2 V3);
+vanadiumCompCharges      (2 3);
+vanadiumOxidationStates  (2 3);
+
+molecularDiffusivity     (2.4e-10 2.4e-10 9.312e-9 1.33e-9 1.065e-9);
+
+smallConc           1e-6;
+minActiveConc       1e-4;
+
+nernstEquation
+{
+    E0                      -0.255;
+    nElectrons              1;
+    
+    numeratorCompNames      (V3);
+    numeratorCompExponents  (1);
+    denominatorCompNames    (V2);
+    denominatorCompExponents (1);
+}
+
+// ************************************************************************* //

@@ -1,0 +1,127 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+  =========                 |
+  \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+   \\    /   O peration     | Website:  https://openfoam.org
+    \\  /    A nd           | Version:  10
+     \\/     M anipulation  |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    format      ascii;
+    class       dictionary;
+    location    "system";
+    object      controlDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+application     openFlowBattery;
+
+startFrom       latestTime;
+
+startTime       0;
+
+stopAt          endTime;
+
+endTime         1e+6;
+
+deltaT          1;
+
+writeControl    adjustableRunTime;
+
+writeInterval   100;
+
+purgeWrite      0;
+
+writeFormat     ascii;
+
+writePrecision  9;
+
+writeCompression off;
+
+timeFormat      general;
+
+timePrecision   6;
+
+runTimeModifiable true;
+
+// maxCo           1.0;
+
+// maxDi           50.0;
+
+// adjustTimeStep  yes;
+
+OptimisationSwitches
+{
+    // On NFS mounted file system: maximum wait for files to appear/get
+    // updated. Set to 0 on distributed case.
+    fileModificationSkew 1;
+
+    //- Modification checking:
+    //  - timeStamp         : use modification time on file
+    //  - inotify           : use inotify framework
+    //  - timeStampMaster   : do time stamp (and file reading) only on master.
+    //  - inotifyMaster     : do inotify (and file reading) only on master.
+    fileModificationChecking timeStampMaster;
+}
+
+t2              10;
+
+// functions
+// {
+//     #includeFunc residuals(region = negative_electrode, p, U, electrode_potential, electrolyte_potential)
+//     #includeFunc residuals(region = positive_electrode, p, U, electrode_potential, electrolyte_potential)
+//     #includeFunc residuals(electrolyte_potential)
+    
+//     #include "integrals"
+//     #include "concentrations"
+	
+//     update_time_Step
+//     {
+//         type              timeActivatedFileUpdate;
+//         libs              ("libutilityFunctionObjects.so");
+//         fileToUpdate      "$FOAM_CASE/system/controlDict";
+//         timeVsFile
+//         (
+//             (-1 "$FOAM_CASE/system/update_files/controlDict.0")
+//             ($t2 "$FOAM_CASE/system/update_files/controlDict.1")
+//         );
+//     }
+
+//     active_potential
+//     {
+//         type              timeActivatedFileUpdate;
+//         libs              ("libutilityFunctionObjects.so");
+//         fileToUpdate      "$FOAM_CASE/system/fvSolution";
+//         timeVsFile
+//         (
+//             (-1 "$FOAM_CASE/system/update_files/fvSolution.0")
+//             ($t2 "$FOAM_CASE/system/update_files/fvSolution.1")
+//         );
+//     }
+
+//     active_thermophysics_negative_electrode
+//     {
+//         type              timeActivatedFileUpdate;
+//         libs              ("libutilityFunctionObjects.so");
+//         fileToUpdate      "$FOAM_CASE/system/negative_electrode/fvSolution";
+//         timeVsFile
+//         (
+//             (-1 "$FOAM_CASE/system/negative_electrode/update_files/fvSolution.0")
+//             ($t2 "$FOAM_CASE/system/negative_electrode/update_files/fvSolution.1")
+//         );
+//     }
+
+//     active_thermophysics_positive_electrode
+//     {
+//         type              timeActivatedFileUpdate;
+//         libs              ("libutilityFunctionObjects.so");
+//         fileToUpdate      "$FOAM_CASE/system/positive_electrode/fvSolution";
+//         timeVsFile
+//         (
+//             (-1 "$FOAM_CASE/system/positive_electrode/update_files/fvSolution.0")
+//             ($t2 "$FOAM_CASE/system/positive_electrode/update_files/fvSolution.1")
+//         );
+//     }
+// }
+
+// ************************************************************************* //

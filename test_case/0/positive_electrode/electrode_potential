@@ -1,0 +1,74 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+  =========                 |
+  \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+   \\    /   O peration     | Website:  https://openfoam.org
+    \\  /    A nd           | Version:  10
+     \\/     M anipulation  |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    format      ascii;
+    class       volScalarField;
+    location    "0/positive_electrode";
+    object      electrode_potential;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+dimensions      [1 2 -3 0 0 -1 0];
+
+internalField   uniform 1.23;
+
+boundaryField
+{
+    #include "$FOAM_CASE/include/setConstraintTypes"
+	
+    inlet_positive_electrode
+    {
+        type            zeroGradient;
+    }
+    outlet_positive_electrode
+    {
+        type            zeroGradient;
+    }
+    walls_positive_electrode
+    {
+        type            zeroGradient;
+    }
+    positive_electrode_to_cc
+    {
+        type                    codedFixedValue;
+        name	        	galvanostaticControl;
+        value		        $internalField;
+        code
+        #{
+        const fvPatch& boundaryPatch = patch();
+        const fvPatchField<scalar>& patchField = *this;
+        const fvMesh& mesh = patchField.patch().boundaryMesh().mesh();
+        const Time& runTime = mesh.time();
+        scalar currentTime = runTime.value();
+        fvPatchField<scalar>& pField = *this;
+        const fvMesh& globalMesh = this->db().time().lookupObject<fvMesh>("region0");
+        const dictionary& batteryControl = globalMesh.lookupObject<IOdictionary>("batteryControl"); 
+        
+        scalar U_cell;
+
+            U_cell = readScalar(batteryControl.lookup("U_cell"));
+            forAll(pField, i)
+        {
+            pField[i] = U_cell;
+        }
+    
+        #};
+    }
+    positive_electrode_to_separator
+    {
+        type            zeroGradient;
+    }
+    frontAndBack
+    {
+        type            empty;
+    }
+}
+
+
+// ************************************************************************* //

@@ -1,0 +1,10 @@
+- - - - - - - Simulation Setup - - - - - - -
+Simulation Type: galvanostatic
+Applied Current Density: 50.0 mA/cm2
+Initial Cell Voltage: 1.23 V
+- - - - - - - Simulation Setup - - - - - - -
+Simulation Type: galvanostatic
+Applied Current Density: 50.0 mA/cm2
+Initial Cell Voltage: 1.23 V
+Fluid Dynamics Equations: false V
+Electrolyte Potential Source Term Linearization:: false V

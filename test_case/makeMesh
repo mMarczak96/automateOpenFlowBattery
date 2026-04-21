@@ -1,0 +1,76 @@
+#!/bin/bash
+cd ${0%/*} || exit 1    # Run from this directory
+
+# Source tutorial run functions
+. $WM_PROJECT_DIR/bin/tools/RunFunctions
+
+runApplication -overwrite blockMesh
+ERROR_CODE=$?
+if [ $ERROR_CODE -ne 0 ]; then
+    echo "\nError:"
+    echo "blockMesh failed!\n" >&2
+    exit $ERROR_CODE
+fi
+
+runApplication -overwrite topoSet
+ERROR_CODE=$?
+if [ $ERROR_CODE -ne 0 ]; then
+    echo -e "\nError:"
+    echo -e "topoSet failed! Check the corresponding log file.\n" >&2
+    exit $ERROR_CODE
+fi
+
+runApplication -overwrite createPatch -overwrite
+ERROR_CODE=$?
+if [ $ERROR_CODE -ne 0 ]; then
+    echo -e "\nError:"
+    echo -e "createPatch failed! Check the corresponding log file.\n" >&2
+    exit $ERROR_CODE
+fi
+
+runApplication -overwrite createBaffles -overwrite
+ERROR_CODE=$?
+if [ $ERROR_CODE -ne 0 ]; then
+    echo -e "\nError:"
+    echo -e "createBaffles failed! Check the corresponding log file.\n" >&2
+    exit $ERROR_CODE
+fi
+
+runApplication -overwrite splitBaffles -overwrite
+ERROR_CODE=$?
+if [ $ERROR_CODE -ne 0 ]; then
+    echo -e "\nError:"
+    echo -e "splitBaffles failed! Check the corresponding log file.\n" >&2
+    exit $ERROR_CODE
+fi
+
+if [ $1 -eq 1 ]; then
+    runApplication -overwrite splitMeshRegions -cellZones -overwrite
+    ERROR_CODE=$?
+    if [ $ERROR_CODE -ne 0 ]; then
+        echo "\nError:"
+        echo "splitMeshRegions failed!\n" >&2
+        exit $ERROR_CODE
+    fi
+
+    set -x
+    rm -rf 0/*_cc/electrolyte_potential
+    { set +x; } 2>/dev/null
+
+else
+    runApplication -overwrite decomposePar -copyZero
+    ERROR_CODE=$?
+    if [ $ERROR_CODE -ne 0 ]; then
+        echo "\nError:"
+        echo "Domain decomposition failed! Check the corresponding log file.\n" >&2
+        exit $ERROR_CODE
+    fi
+
+    runParallel -overwrite -np $1 splitMeshRegions -cellZones -overwrite
+    ERROR_CODE=$?
+    if [ $ERROR_CODE -ne 0 ]; then
+        echo "\nError:"
+        echo "splitMeshRegions failed!\n" >&2
+        exit $ERROR_CODE
+    fi
+fi

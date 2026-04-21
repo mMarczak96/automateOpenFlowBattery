@@ -1,0 +1,64 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+  =========                 |
+  \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+   \\    /   O peration     | Website:  https://openfoam.org
+    \\  /    A nd           | Version:  10
+     \\/     M anipulation  |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    format      ascii;
+    class       dictionary;
+    location    "system/negative_electrode";
+    object      fvSchemes;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+ddtSchemes
+{
+    default         steadyState;
+}
+
+gradSchemes
+{
+    default         Gauss linear;
+}
+
+divSchemes
+{
+    default         none;
+
+    div(phi,U)      Gauss upwind;
+
+    div(phi,VO2)               Gauss limitedLinear 1;
+    div(phi,VO)                Gauss limitedLinear 1;
+    div(phi,HSO4)              Gauss limitedLinear 1;
+    div(phi,SO4)     	       Gauss limitedLinear 1;
+
+    div(migration,VO2)         Gauss limitedLinear 1;
+    div(migration,VO)          Gauss limitedLinear 1;
+    div(migration,HSO4)        Gauss limitedLinear 1;
+    div(migration,SO4)           Gauss limitedLinear 1;
+
+    div(phi,h)      Gauss upwind;
+    div(phi,K)      Gauss linear;
+    div(((rho*nuEff)*dev2(T(grad(U))))) Gauss linear;
+}
+
+laplacianSchemes
+{
+    default         Gauss linear corrected;
+}
+
+interpolationSchemes
+{
+    default         linear;
+}
+
+snGradSchemes
+{
+    default         corrected;
+}
+
+
+// ************************************************************************* //

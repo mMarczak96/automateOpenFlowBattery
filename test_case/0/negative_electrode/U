@@ -1,0 +1,50 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+  =========                 |
+  \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+   \\    /   O peration     | Website:  https://openfoam.org
+    \\  /    A nd           | Version:  10
+     \\/     M anipulation  |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    format      ascii;
+    class       volVectorField;
+    location    "0/negative_electrode";
+    object      U;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+dimensions      [0 1 -1 0 0 0 0];
+
+internalField   uniform (0.01667 0 0);
+
+boundaryField
+{
+    #include "$FOAM_CASE/include/setConstraintTypes"
+
+    inlet_negative_electrode
+    {
+        type            fixedValue;
+        value           $internalField;
+    }
+    outlet_negative_electrode
+    {
+        type            pressureInletOutletVelocity;
+        value           $internalField;
+    }
+    negative_electrode_to_cc
+    {
+        type            zeroGradient;
+    }
+    negative_electrode_to_separator
+    {
+        type            zeroGradient;
+    }
+    frontAndBack
+    {
+        type            empty;
+    }
+}
+
+
+// ************************************************************************* //

@@ -1,0 +1,44 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+  =========                 |
+  \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+   \\    /   O peration     | Website:  https://openfoam.org
+    \\  /    A nd           | Version:  10
+     \\/     M anipulation  |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    format      ascii;
+    class       dictionary;
+    location    "constant";
+    object      batteryControl;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+Itotal          0.025;
+
+U_cell          1.23;
+
+U_max           3;
+
+U_min           0.01;
+
+alpha           0.5;
+
+ba              0.1;
+
+IsTol           0.1;
+
+IlTol           0.1;
+
+ITol            1;
+
+galvanoITol     1;
+
+IsTolVolume     100;
+
+IlTolVolume     100;
+
+currentDensityConvergenceTol 15;
+
+
+// ************************************************************************* //

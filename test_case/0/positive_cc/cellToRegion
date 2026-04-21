@@ -1,0 +1,42 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+  =========                 |
+  \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+   \\    /   O peration     | Website:  https://openfoam.org
+    \\  /    A nd           | Version:  10
+     \\/     M anipulation  |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    format      ascii;
+    class       volScalarField;
+    location    "0/positive_cc";
+    object      cellToRegion;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+dimensions      [0 0 0 0 0 0 0];
+
+internalField   uniform 4;
+
+boundaryField
+{
+    frontAndBack
+    {
+        type            empty;
+    }
+    positive_cc_tab
+    {
+        type            zeroGradient;
+    }
+    walls_positive_cc
+    {
+        type            zeroGradient;
+    }
+    positive_cc_to_electrode
+    {
+        type            zeroGradient;
+    }
+}
+
+
+// ************************************************************************* //

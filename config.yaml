@@ -6,8 +6,8 @@ regions:
     initialConditions:
       electrolyte_potential:
         internalField: 0
-        ionicSpeciesName: "H"
-        separatorPatchMode: 2
+        ionicSpeciesName: &membraneSpecie "H"
+        separatorPatchMode: &membraneMode 2
 
     constant:
       batteryControl:
@@ -29,7 +29,7 @@ regions:
       fvSolution:
         potential: "on"
         nElectrolytePotentialCorrectors: 100
-        controlMethod: "potentiostatic"
+        controlMethod: 'galvanostatic' #"potentiostatic"
         fluidFlow:  "false"
         linearizeSourceTerm: "false"
         electrolyte_potential_alphaRelax: 0.6
@@ -94,8 +94,8 @@ regions:
 
       electrolyte_potential:
         internalField: 0
-        ionicSpeciesName: "H"
-        separatorPatchMode: 2
+        ionicSpeciesName: *membraneSpecie
+        separatorPatchMode: *membraneMode
 
       T:
         internalField: 300
@@ -214,8 +214,8 @@ regions:
 
       electrolyte_potential:
         internalField: 0
-        ionicSpeciesName: "H"
-        separatorPatchMode: 2
+        ionicSpeciesName: *membraneSpecie
+        separatorPatchMode: *membraneMode
 
       T:
         internalField: 300

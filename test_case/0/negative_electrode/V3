@@ -1,0 +1,66 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+  =========                 |
+  \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+   \\    /   O peration     | Website:  https://openfoam.org
+    \\  /    A nd           | Version:  10
+     \\/     M anipulation  |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    format      ascii;
+    class       volScalarField;
+    location    "0/negative_electrode";
+    object      V3;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+dimensions      [0 -3 0 0 1 0 0];
+
+internalField   uniform 500;
+
+initialConcentration 500;
+boundaryField
+{
+    #include "$FOAM_CASE/include/setConstraintTypes"
+
+    inlet_negative_electrode
+    {
+        type            fixedValue;
+        value           uniform $initialConcentration;
+    }
+    outlet_negative_electrode
+    {
+        type            zeroGradient;
+    }
+    walls_negative_electrode
+    {
+        type            zeroGradient;
+    }
+    negative_electrode_to_cc
+    {
+        type              ionicSpeciesZeroFluxMixed;
+        potential         electrolyte_potential;
+        initialConc       $initialConcentration;
+        mode		  1;
+        alpha		  0.9;
+        startTime	  5000;
+        value             uniform $initialConcentration; 
+    }
+    negative_electrode_to_separator
+    {
+        type              ionicSpeciesZeroFluxMixed;
+        potential         electrolyte_potential;
+        initialConc       $initialConcentration;
+        mode		  1;
+        alpha		  0.1;
+        startTime	  5000;
+        value             uniform $initialConcentration; 
+    }
+    frontAndBack
+    {
+        type            empty;
+    }
+}
+
+
+// ************************************************************************* //

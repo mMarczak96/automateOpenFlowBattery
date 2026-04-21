@@ -1,0 +1,45 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+  =========                 |
+  \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+   \\    /   O peration     | Website:  https://openfoam.org
+    \\  /    A nd           | Version:  10
+     \\/     M anipulation  |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    format      ascii;
+    class       dictionary;
+    location    "constant/negative_electrode";
+    object      porosityProperties;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+porosity1
+{
+    type            fixedCoeff;
+
+    cellZone        negative_electrode;
+
+    porosity        0.84;
+
+    alpha (1e4 1e4 1e4); // kinematic viscosity divided by permeability
+
+    beta (0 0 0);
+
+    rhoRef 1e3;
+
+    coordinateSystem
+    {
+        type    cartesian;
+        origin  (0 0 0);
+        coordinateRotation
+        {
+            type    axesRotation;
+            e1      (1 0 0);
+            e2      (0 1 0);
+        }
+    }
+}
+
+
+// ************************************************************************* //

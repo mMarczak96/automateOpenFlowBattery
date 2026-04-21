@@ -1,7 +1,72 @@
 import os
+import re
 import yaml
 import shutil
+import logging
 from jinja2 import Template
+
+def get_variable_value(file_content, var_name):
+    pattern = rf"{var_name}\s+([\d.]+);"
+    match = re.search(pattern, file_content)
+    
+    if match:
+        return float(match.group(1))
+    return None
+
+def get_current_density(config_dict):
+    
+    provided_cc_area = False
+    
+    if not provided_cc_area:
+        print("Calculating CC Area From the blockMeshDict")
+
+        with open('template/system/blockMeshDict', 'r') as f:
+            content = f.read()
+        
+        length = get_variable_value(content, 'length')
+        width = get_variable_value(content, 'width')
+        convertToMeters = get_variable_value(content, 'convertToMeters')
+
+        cc_patch_area = length * width * convertToMeters * convertToMeters
+    else:
+        cc_patch_area = 2137 # provide a script input value
+    
+    Itotal = config_dict['regions']['global']['constant']['batteryControl']['Itotal']
+
+    return Itotal / cc_patch_area / 10
+
+def write_to_log(config_dict):
+    
+    logger = logging.getLogger("OpenFOAM_Automation")
+    logger.setLevel(logging.INFO)
+
+    # Add the Summary File Handler (Saves to file)
+    summary_handler = logging.FileHandler("simulation_summary.log")
+    summary_handler.setFormatter(logging.Formatter('%(message)s'))
+    logger.addHandler(summary_handler)
+
+    console_handler = logging.StreamHandler()
+    logger.addHandler(console_handler)
+
+    simType = config_dict['regions']['global']['system']['fvSolution']['controlMethod']
+    
+    curren_density = 'None'
+    if simType == 'galvanostatic':
+        curren_density = get_current_density(config_dict)
+
+    U_cell = config_dict['regions']['global']['constant']['batteryControl']['U_cell']
+    fluidFlow = config_dict['regions']['global']['system']['fvSolution']['fluidFlow']
+    linearizeSourceTerm = config_dict['regions']['global']['system']['fvSolution']['linearizeSourceTerm']
+
+
+    logger.info(f"- - - - - - - Simulation Setup - - - - - - -")
+    logger.info(f"Simulation Type: {simType}")
+    logger.info(f"Applied Current Density: {curren_density} mA/cm2")
+    logger.info(f"Initial Cell Voltage: {U_cell} V")
+
+    logger.info(f"Fluid Dynamics Equations: {fluidFlow}")
+    logger.info(f"Electrolyte Potential Source Term Linearization:: {linearizeSourceTerm}")
+
 
 def update_openfoam_files(case_name, config_path):
     with open(config_path, 'r') as f:
@@ -56,5 +121,9 @@ def update_openfoam_files(case_name, config_path):
                     else:
                         print(f"   Warning: File not found: {file_path}")
 
+    write_to_log(config_data)
+
 if __name__ == "__main__":
+
     update_openfoam_files("test_case", "config.yaml")
+    # os.system(f"cd test_case && ./Allrun.sh")

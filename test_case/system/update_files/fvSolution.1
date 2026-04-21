@@ -1,0 +1,52 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+  =========                 |
+  \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+   \\    /   O peration     | Website:  https://openfoam.org
+    \\  /    A nd           | Version:  10
+     \\/     M anipulation  |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    format      ascii;
+    class       dictionary;
+    location    "system";
+    object      fvSolution;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+solvers
+{
+    "electrolyte_potential"
+    {
+        solver           GAMG;
+        smoother         symGaussSeidel;
+        tolerance        1e-8;
+        relTol           1e-6;
+        minIter          1;
+    }
+}
+
+PIMPLE
+{
+    potential                          on;
+    nElectrolytePotentialCorrectors    3;
+    //controlMethod		       galvanostatic; 
+    controlMethod                      potentiostatic;
+    // electrolyte_potentialRefPoint      (-0.025 0.0245 0.004);
+    // electrolyte_potentialRefValue      0;
+}
+
+relaxationFactors
+{
+    fields
+    {
+        electrolyte_potential 0.9;
+    }
+
+    equations
+    {
+        electrolyte_potential 0.9;
+    }
+}
+
+// ************************************************************************* //

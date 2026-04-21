@@ -1,0 +1,74 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  2212                                  |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    arch        "LSB;label=32;scalar=64";
+    class       dictionary;
+    location    "system";
+    object      fluxDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+/*
+flux
+{
+    // Mandatory entries
+    type            flux;
+    libs            (fieldFunctionObjects);
+
+    // Optional entries
+    rho             none;
+
+    // Optional (inherited) entries
+    field           V2;
+    result          fluxField;
+    region          negative_electrode;
+    enabled         true;
+    log             true;
+    timeStart       0;
+    timeEnd         333347;
+    executeControl  timeStep;
+    executeInterval 1;
+    writeControl    timeStep;
+    writeInterval   1;
+}
+*/
+
+
+    flux
+    {
+        type            faceSource;
+        functionObjectLibs ("libfieldFunctionObjects.so");
+
+        enabled         true;
+        outputControl   outputTime;
+        surfaceFormat   off;
+
+        // Output to log&file (true) or to file only
+        log             true;
+        // Output field values as well
+        valueOutput     true;
+        // Type of source: patch/faceZone/sampledSurface
+        source          sampledSurface;        
+        //// if sampledSurface: dictionary with a sampledSurface
+        //// Note: will not sample surface fields.
+        sampledSurfaceDict
+        {           
+            type            plane;
+            basePoint       (8.1e-4 0 0);
+            normalVector    (1 0 0);
+            interpolate       false;
+        }
+        operation       areaNormalIntegrate;
+        fields
+        (
+            U
+        );
+    }
+
