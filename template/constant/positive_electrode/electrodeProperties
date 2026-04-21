@@ -1,0 +1,34 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+  =========                 |
+  \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+   \\    /   O peration     | Website:  https://openfoam.org
+    \\  /    A nd           | Version:  10
+     \\/     M anipulation  |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    format      ascii;
+    class       dictionary;
+    location    "constant/positive_electrode";
+    object      electrodeProperties;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+type            {{ type }};
+specificArea    {{ specificArea }};
+conductivity    {{ conductivity }};
+initField       {{ initField }};
+
+kinetics
+{
+    type                {{ kineticsType }};
+    linearizeCurrent    {{ linearizeCurrent }};
+    alpha               {{ alpha }};
+    nElectrons          {{ nElectrons }};
+    K0                  {{ K0 }};
+    initField           {{ initFieldK }};
+    iLim                {{ iLim }};
+}
+
+
+// ************************************************************************* //

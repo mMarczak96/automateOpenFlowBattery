@@ -1,0 +1,45 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+  =========                 |
+  \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+   \\    /   O peration     | Website:  https://openfoam.org
+    \\  /    A nd           | Version:  10
+     \\/     M anipulation  |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    format      ascii;
+    class       volScalarField;
+    location    "227269/separator";
+    object      H;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+dimensions      [0 -3 0 0 1 0 0];
+
+internalField   uniform 1280;
+
+boundaryField
+{
+    frontAndBack
+    {
+        type            empty;
+    }
+    walls_separator
+    {
+        type            calculated;
+        value           uniform 1280;
+    }
+    separator_to_negative_electrode
+    {
+        type            calculated;
+        value           uniform 1280;
+    }
+    separator_to_positive_electrode
+    {
+        type            calculated;
+        value           uniform 1280;
+    }
+}
+
+
+// ************************************************************************* //

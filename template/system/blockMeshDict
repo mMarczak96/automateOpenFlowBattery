@@ -1,0 +1,265 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+  =========                 |
+  \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+   \\    /   O peration     | Website:  https://openfoam.org
+    \\  /    A nd           | Version:  10
+     \\/     M anipulation  |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    format      ascii;
+    class       dictionary;
+    location    "system";
+    object      blockMeshDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+convertToMeters 0.001;
+
+length        50;  // mm
+width         1;  // mm
+
+electrode_thickness_n    4;  // mm
+electrode_thickness_p    4;  // mm
+separator_thickness      0.2;  // mm
+
+current_collector_thickness_n    0.2; // mm
+current_collector_thickness_p    0.2; // mm
+
+expansionPortion_n_s    0.25;
+expansionPortion_p_s    0.25;
+expansionPortion_n_cc   0.25;
+expansionPortion_p_cc   0.25;
+
+expansionRatio_n_s      0.2;
+expansionRatio_p_s      0.2;
+expansionRatio_n_cc     0.2;
+expansionRatio_p_cc     0.2;
+
+nGrids_length     1;
+nGrids_width              15;
+
+nLayers_n_uniform       5;
+nLayers_n_expanding_s   5;
+nLayers_n_expanding_cc  5;
+nLayers_p_uniform       5;
+nLayers_p_expanding_s   5;
+nLayers_p_expanding_cc  5;
+nLayers_m              4;
+nLayers_cc_n           1;
+nLayers_cc_p           1;
+
+vertices #codeStream
+{
+    codeInclude
+    #{
+        #include "pointField.H"
+        // #include "transformField.H"
+    #};
+
+    code
+    #{
+        const scalar halfLength = $length / 2.0;
+        const scalar halfWidth = $width / 2.0;
+
+        const scalar baseLevel =
+            - $electrode_thickness_n - $current_collector_thickness_n
+            - $separator_thickness / 2;
+
+        const scalar dh1 = $current_collector_thickness_n;
+        const scalar dh2 = dh1 + $expansionPortion_n_cc * $electrode_thickness_n;
+        const scalar dh3 = dh2 + (1 - $expansionPortion_n_cc - $expansionPortion_n_s) * $electrode_thickness_n;
+        const scalar dh4 = dh3 + $expansionPortion_n_s * $electrode_thickness_n;
+        const scalar dh5 = dh4 + $separator_thickness;
+        const scalar dh6 = dh5 + $expansionPortion_p_s * $electrode_thickness_p;
+        const scalar dh7 = dh6 + (1 - $expansionPortion_p_s - $expansionPortion_p_cc) * $electrode_thickness_p;
+        const scalar dh8 = dh7 + $expansionPortion_p_cc * $electrode_thickness_p;
+        const scalar dh9 = dh8 + $current_collector_thickness_p;
+
+        List<scalar> levels({dh1, dh2, dh3, dh4, dh5, dh6, dh7, dh8, dh9});
+
+        pointField points_base
+        ({
+            point(halfLength,      halfWidth,    baseLevel), // pt 0
+            point(-halfLength,     halfWidth,    baseLevel), // pt 1
+            point(-halfLength,    -halfWidth,    baseLevel), // pt 2
+            point(halfLength,     -halfWidth,    baseLevel), // pt 3
+        });
+
+        pointField points(points_base);
+
+        forAll(levels, i)
+        {
+            points.append(points_base + vector(0, 0, levels[i]));
+        }
+
+        os  << points;
+        Info << points;
+    #};
+};
+
+blocks #codeStream
+{
+    codeInclude
+    #{
+        #include "pointField.H"
+        #include "labelVector.H"
+    #};
+
+    code
+    #{
+        labelListList baseFaceVerts({
+            labelList({0, 1, 2, 3})});
+
+        label nFaceVerts = 4;
+
+        labelList nLayers({
+            $nLayers_cc_n, $nLayers_n_expanding_cc, $nLayers_n_uniform, $nLayers_n_expanding_s, $nLayers_m,
+            $nLayers_p_expanding_s, $nLayers_p_uniform, $nLayers_p_expanding_cc, $nLayers_cc_p});
+
+        wordList blockNames({
+            "negative_cc", 
+            "negative_electrode", "negative_electrode","negative_electrode", 
+            "separator", 
+            "positive_electrode", "positive_electrode", "positive_electrode", 
+            "positive_cc"});
+
+        List<vector> blockGradings({
+            {1, 1, 1},                              // neg_cc
+            {1, 1, 1 / $expansionRatio_n_cc},       // neg_el_cc_layers
+            {1, 1, 1},                              // neg_el_uniform
+            {1, 1, $expansionRatio_n_s},            // neg_el_s_layers
+            {1, 1, 1},                              // separator
+            {1, 1, 1 / $expansionRatio_p_s},        // pos_el_s_layers
+            {1, 1, 1},                              // pos_el_uniform
+            {1, 1, $expansionRatio_p_cc},           // pos_el_cc_layers
+            {1, 1, 1}});                            // pos_cc
+
+        label offset = 0;
+
+        os  << "(";
+        forAll(nLayers, i)
+        {
+            List<labelVector> blockGrids({
+                {$nGrids_width, $nGrids_length, nLayers[i]},
+                {$nGrids_width, $nGrids_length, nLayers[i]},
+                {$nGrids_width, $nGrids_length, nLayers[i]},
+                {$nGrids_width, $nGrids_length, nLayers[i]},
+                {$nGrids_width, $nGrids_length, nLayers[i]}});
+
+            forAll(baseFaceVerts, j)
+            {
+                labelList blockVerts(baseFaceVerts[j] + offset);
+                blockVerts.append(baseFaceVerts[j] + offset + nFaceVerts);
+
+                os  << "hex " << blockVerts;
+                os  << blockNames[i] << " " << blockGrids[j] << " simpleGrading "
+                    << blockGradings[i] << "\n";
+            }
+
+            offset += nFaceVerts;
+        }
+        os  << ");";
+    #};
+};
+
+defaultPatch
+{
+    type wall;
+    name walls;
+}
+
+boundary
+(
+    frontAndBack
+    {
+        type empty;
+        faces
+        (   
+            // Front Faces
+            (0 1 5 4)
+            (5 9 8 4)
+            (9 13 12 8)
+            (13 17 16 12)
+            (17 21 20 16)
+            (21 25 24 20)
+            (25 29 28 24)
+            (29 33 32 28)
+            (33 37 36 32)
+            // Back faces
+            (2 3 7 6)
+            (6 7 11 10)
+            (10 11 15 14)
+            (14 15 19 18)
+            (18 19 23 22)
+            (22 23 27 26)
+            (26 27 31 30)
+            (30 31 35 34)
+            (34 35 39 38)
+        );
+    }
+
+    inlet_negative_electrode
+    {
+        type patch;
+        faces
+        (
+            (5 6 10 9)
+            (9 10 14 13)
+            (13 14 18 17)
+        );
+    }
+
+    inlet_positive_electrode
+    {
+        type patch;
+        faces
+        (
+            (21 22 26 25)
+            (25 26 30 29)
+            (29 30 34 33)
+        );
+    }
+
+    outlet_negative_electrode
+    {
+        type patch;
+        faces
+        (
+            (4 7 11 8)
+            (8 11 15 12)
+            (12 15 19 16)
+        );
+    }
+
+    outlet_positive_electrode
+    {
+        type patch;
+        faces
+        (
+            (20 23 27 24)
+            (24 27 31 28)
+            (28 31 35 32)
+        );
+    }
+
+    negative_cc_tab
+    {
+        type wall;
+        faces
+        (
+            (0 1 2 3)
+        );
+    }
+
+    positive_cc_tab
+    {
+        type wall;
+        faces
+        (
+            (36 37 38 39)
+        );
+    }
+);
+
+// ************************************************************************* //

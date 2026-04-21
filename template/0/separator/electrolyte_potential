@@ -1,0 +1,50 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+  =========                 |
+  \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+   \\    /   O peration     | Website:  https://openfoam.org
+    \\  /    A nd           | Version:  10
+     \\/     M anipulation  |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    format      ascii;
+    class       volScalarField;
+    location    "0/separator";
+    object      electrolyte_potential;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+dimensions      [1 2 -3 0 0 -1 0];
+
+internalField   uniform 0;
+
+boundaryField
+{
+    frontAndBack
+    {
+        type            empty;
+    }
+    walls_separator
+    {
+        type            zeroGradient;
+    }
+    separator_to_negative_electrode
+    {
+        type            donnanPotentialBaffleMixed;
+        potentialNbr    electrolyte_potential;
+        ionicSpeciesName H;
+        mode            2;
+        value           uniform 0;
+    }
+    separator_to_positive_electrode
+    {
+        type            donnanPotentialBaffleMixed;
+        potentialNbr    electrolyte_potential;
+        ionicSpeciesName H;
+        mode            2;
+        value           uniform 0;
+    }
+}
+
+
+// ************************************************************************* //

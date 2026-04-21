@@ -1,0 +1,326 @@
+# case_name: "RFB_Simulation_Base"
+
+regions:
+
+  global:
+    initialConditions:
+      electrolyte_potential:
+        internalField: 0
+        ionicSpeciesName: "H"
+        separatorPatchMode: 2
+
+    constant:
+      batteryControl:
+        Itotal: 0.025
+        U_cell: &cell_voltage 1.23
+        U_max: 3
+        U_min: 0.01
+        alpha: 0.5
+        ba: 0.1
+        IsTol: 0.1
+        IlTol: 0.1
+        ITol: 1
+        galvanoITol: 1
+        IsTolVolume: 100
+        IlTolVolume: 100
+        currentDensityConvergenceTol: 15
+
+    system:
+      fvSolution:
+        potential: "on"
+        nElectrolytePotentialCorrectors: 100
+        controlMethod: "potentiostatic"
+        fluidFlow:  "false"
+        linearizeSourceTerm: "false"
+        electrolyte_potential_alphaRelax: 0.6
+
+
+  # --- CURRENT COLLECTORS (CC) ---
+  # negative_cc:
+    # initialConditions:
+
+    # constant:
+
+    # system:
+    #   fvSolution:
+
+  # positive_cc:
+    # initialConditions:
+
+    # constant:
+    
+    # system:
+    #   fvSolution:
+
+  # --- SEPARATOR (Ion Exchange Membrane) ---
+  separator:
+
+    # initialConditions:
+
+    constant:
+      electrolyteSolutionProperties:
+        type: "permSelectiveProtonExchangeMembraneSolution"
+        speciesNumber: 1
+        specieName: "H"
+        molecularDiffusivity: "(9.312e-9)"
+      
+      membraneProperties:
+        porosity: 0.8
+        fixedGroupConc: 1280
+        fixedGroupCharge: -1
+
+      momentumTransport:
+        simulationType: "laminar"
+
+      physicalProperties:
+        molWeight: 18
+        rho: 1000
+        Cp: 4181
+        Hf: 0
+        mu: 959e-6
+        Pr: 6.62
+
+    # system:
+    #   fvSolution:
+
+  # --- ELECTRODES (Reactive Porous Regions) ---
+  
+  negative_electrode:
+
+    initialConditions:
+
+      electrode_potential:
+        internalField: 0
+
+      electrolyte_potential:
+        internalField: 0
+        ionicSpeciesName: "H"
+        separatorPatchMode: 2
+
+      T:
+        internalField: 300
+
+      U:
+        internalField: "(0.01667 0 0)"
+        wallBCtype: "zeroGradient" # zeroGradient if there is no flow in the battery/ noSlip with the fluid flow
+
+      V2:
+        internalField: 500
+        initialConcentration: 500
+        ccPatchMode: 1
+        ccPatchAlphaRelax: 0.9
+        separatorPatchMode: 1
+        separatorAlphaRelax: 0.1
+
+      V3:
+        internalField: 500
+        initialConcentration: 500
+        ccPatchMode: 1
+        ccPatchAlphaRelax: 0.9
+        separatorPatchMode: 1
+        separatorAlphaRelax: 0.1
+
+      HSO4:
+        internalField: 3000
+        initialConcentration: 3000
+        ccPatchMode: 1
+        ccPatchAlphaRelax: 0.9
+        separatorPatchMode: 1
+        separatorAlphaRelax: 0.1
+
+      SO4:
+        internalField: 2250
+        initialConcentration: 2250
+        ccPatchMode: 1
+        ccPatchAlphaRelax: 0.9
+        separatorPatchMode: 1
+        separatorAlphaRelax: 0.1
+
+    constant:
+      electrodeProperties:
+        # Electrode Settings
+        type: "singlePhasePorousElectrode"
+        specificArea: 30000
+        conductivity: 500
+        initField: 0
+        # Kinetics Subdict
+        kineticsType: "butlerVolmer"
+        linearizeCurrent: "true"
+        alpha: 0.5
+        nElectrons: 1
+        K0: 7e-08
+        initFieldK: 0 # Clean from the source code
+        iLim: 100
+
+      electrolyteSolutionProperties:
+        # Electrolyte Settings -> Old Solution Class
+        type: "newVanadiumSolutionSulfateTransport"
+        speciesNumber: 5
+        vanadiumComponents: "(V2 V3)"
+        vanadiumCompCharges: "(2 3)"
+        vanadiumOxidationStates: "(2 3)"
+        molDiff: "(2.4e-10 2.4e-10 9.312e-9 1.33e-9 1.065e-9)"
+        smallConc: 1e-6
+        minActiveConc: 1e-4
+        # Half-cell Model Subdict
+        E0_nernst: -0.255
+        nElectrons: 1
+        numNames: "(V3)"
+        numExp: "(1)"
+        denNames: "(V2)"
+        denExp: "(1)"
+
+      momentumTransport:
+        simulationType: "laminar"
+
+      physicalProperties:
+        molWeight: 18
+        rho: 1000
+        Cp: 4181
+        Hf: 0
+        mu: 959e-6
+        Pr: 6.62
+
+      porosityProperties:
+        type: "fixedCoeff"
+        cellZone: "negative_electrode"
+        porosity: 0.84
+        alpha: "(1e4 1e4 1e4)"
+        beta: "(0 0 0)"
+        rhoRef: 1e3
+
+      tankModel:
+        activate: "false"
+        Vtank: 0.000028416
+
+      thermophysicalTransport:
+        model: "Fourier"
+    
+    system:
+      fvSolution:
+        thermophysics: "yes"
+        p_alphaRelax: 0.7
+        U_alphaRelax: 0.3
+        electrode_potential_alphaRelax: 1
+        specie_alphaRelax: 1
+
+
+  positive_electrode:
+
+    initialConditions:
+
+      electrode_potential:
+        internalField: *cell_voltage
+
+      electrolyte_potential:
+        internalField: 0
+        ionicSpeciesName: "H"
+        separatorPatchMode: 2
+
+      T:
+        internalField: 300
+
+      U:
+        internalField: "(0.01667 0 0)"
+        wallBCtype: "zeroGradient" # zeroGradient if there is no flow in the battery/ noSlip with the fluid flow
+
+      VO:
+        internalField: 500
+        initialConcentration: 500
+        ccPatchMode: 1
+        ccPatchAlphaRelax: 0.9
+        separatorPatchMode: 1
+        separatorAlphaRelax: 0.1
+
+      VO2:
+        internalField: 500
+        initialConcentration: 500
+        ccPatchMode: 1
+        ccPatchAlphaRelax: 0.9
+        separatorPatchMode: 1
+        separatorAlphaRelax: 0.1
+
+      HSO4:
+        internalField: 3000
+        initialConcentration: 3000
+        ccPatchMode: 1
+        ccPatchAlphaRelax: 0.9
+        separatorPatchMode: 1
+        separatorAlphaRelax: 0.1
+
+      SO4:
+        internalField: 1750
+        initialConcentration: 1750
+        ccPatchMode: 1
+        ccPatchAlphaRelax: 0.9
+        separatorPatchMode: 1
+        separatorAlphaRelax: 0.1
+
+    constant:
+      electrodeProperties:
+        # Electrolyte Settings -> Old Solution Class
+        type: "singlePhasePorousElectrode"
+        specificArea: 30000
+        conductivity: 500
+        initField: 0
+        # Kinetics subdict
+        kineticsType: "butlerVolmer"
+        linearizeCurrent: "true"
+        alpha: 0.5
+        nElectrons: 1
+        K0: 2.5e-8
+        initFieldK: 0 # Clean from the source code
+        iLim: 100
+
+    
+      electrolyteSolutionProperties:
+        # Electrolyte Settings -> Old Solution Class
+        type: "newVanadiumSolutionSulfateTransport"
+        speciesNumber: 5
+        vanadiumComponents: "(VO2 VO)"
+        vanadiumCompCharges: "(1 2)"
+        vanadiumOxidationStates: "(5 4)"
+        molDiff: "(3.9e-10 3.9e-10 9.312e-9 1.33e-9 1.065e-9)"
+        smallConc: 1e-6
+        minActiveConc: 1e-4
+        # Half-cell Model Subdict
+        E0_nernst: 1.004
+        nElectrons: 1
+        numNames: "(VO2 H)"
+        numExp: "(1 2)"
+        denNames: "(VO)"
+        denExp: "(1)"
+
+      momentumTransport:
+        simulationType: "laminar"
+
+      physicalProperties:
+        molWeight: 18
+        rho: 1000
+        Cp: 4181
+        Hf: 0
+        mu: 959e-6
+        Pr: 6.62
+
+      porosityProperties:
+        type: "fixedCoeff"
+        cellZone: "positive_electrode"
+        porosity: 0.84
+        alpha: "(1e4 1e4 1e4)"
+        beta: "(0 0 0)"
+        rhoRef: 1e3
+
+      tankModel:
+        activate: "false"
+        Vtank: 0.000028416
+
+      thermophysicalTransport:
+        model: "Fourier"
+    
+    system:
+      fvSolution:
+        thermophysics: "yes"
+        p_alphaRelax: 0.7
+        U_alphaRelax: 0.3
+        electrode_potential_alphaRelax: 1
+        specie_alphaRelax: 1

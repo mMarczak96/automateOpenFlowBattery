@@ -1,0 +1,233 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+  =========                 |
+  \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+   \\    /   O peration     | Website:  https://openfoam.org
+    \\  /    A nd           | Version:  10
+     \\/     M anipulation  |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    format      ascii;
+    class       dictionary;
+    location    "system";
+    object      blockMeshDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+convertToMeters 0.001;
+
+length        50;  // mm
+width         1;  // mm
+
+electrode_thickness_n    4;  // mm
+electrode_thickness_p    4;  // mm
+separator_thickness      0.2;  // mm
+
+current_collector_thickness_n    0.2; // mm
+current_collector_thickness_p    0.2; // mm
+
+nGrids_length          1;
+nGrids_width           15;
+
+nLayers_e_n            40;
+nLayers_e_p            40;
+nLayers_m              3;
+nLayers_cc_n           1;
+nLayers_cc_p           1;
+
+vertices #codeStream
+{
+    codeInclude
+    #{
+        #include "pointField.H"
+    #};
+
+    code
+    #{
+        const scalar halfLength = $length / 2.0;
+        const scalar halfWidth = $width / 2.0;
+
+        const scalar baseLevel =
+            - $electrode_thickness_n - $current_collector_thickness_n
+            - $separator_thickness / 2;
+
+        const scalar dh1 = $current_collector_thickness_n;
+        const scalar dh2 = dh1 + $electrode_thickness_n;
+        const scalar dh3 = dh2 + $separator_thickness;
+        const scalar dh4 = dh3 + $electrode_thickness_p;
+        const scalar dh5 = dh4 + $current_collector_thickness_p;
+
+        List<scalar> levels({dh1, dh2, dh3, dh4, dh5});
+
+        pointField points_base
+        ({
+            point(halfLength,      halfWidth,    baseLevel), // pt 0
+            point(-halfLength,     halfWidth,    baseLevel), // pt 1
+            point(-halfLength,    -halfWidth,    baseLevel), // pt 2
+            point(halfLength,     -halfWidth,    baseLevel), // pt 3
+        });
+
+        pointField points(points_base);
+
+        forAll(levels, i)
+        {
+            points.append(points_base + vector(0, 0, levels[i]));
+        }
+
+        os  << points;
+        Info << points;
+    #};
+};
+
+blocks #codeStream
+{
+    codeInclude
+    #{
+        #include "pointField.H"
+        #include "labelVector.H"
+    #};
+
+    code
+    #{
+        labelListList baseFaceVerts({
+            labelList({0, 1, 2, 3})});
+
+        label nFaceVerts = 4;
+
+        labelList nLayers({
+            $nLayers_cc_n, 
+            $nLayers_e_n, 
+            $nLayers_m,
+            $nLayers_e_p,  
+            $nLayers_cc_p});
+
+        wordList blockNames({
+            "negative_cc", 
+            "negative_electrode",
+            "separator", 
+            "positive_electrode",
+            "positive_cc"});
+
+        List<vector> blockGradings({
+            {1, 1, 1},                              // neg_cc
+            {1, 1, 0.05},                              // neg_e
+            {1, 1, 1},                              // separator
+            {1, 1, 20},                              // pos_e
+            {1, 1, 1}});                            // pos_cc
+
+        label offset = 0;
+
+        os  << "(";
+        forAll(nLayers, i)
+        {
+            List<labelVector> blockGrids({
+                {$nGrids_width, $nGrids_length, nLayers[i]},
+                {$nGrids_width, $nGrids_length, nLayers[i]},
+                {$nGrids_width, $nGrids_length, nLayers[i]},
+                {$nGrids_width, $nGrids_length, nLayers[i]},
+                {$nGrids_width, $nGrids_length, nLayers[i]}});
+
+            forAll(baseFaceVerts, j)
+            {
+                labelList blockVerts(baseFaceVerts[j] + offset);
+                blockVerts.append(baseFaceVerts[j] + offset + nFaceVerts);
+
+                os  << "hex " << blockVerts;
+                os  << blockNames[i] << " " << blockGrids[j] << " simpleGrading "
+                    << blockGradings[i] << "\n";
+            }
+
+            offset += nFaceVerts;
+        }
+        os  << ");";
+    #};
+};
+
+defaultPatch
+{
+    type wall;
+    name walls;
+}
+
+boundary
+(
+    frontAndBack
+    {
+        type empty;
+        faces
+        (   
+            // Front Faces
+            (0 1 5 4)
+            (5 9 8 4)
+            (9 13 12 8)
+            (13 17 16 12)
+            (17 21 20 16)
+            // Back faces
+            (2 3 7 6)
+            (6 7 11 10)
+            (10 11 15 14)
+            (14 15 19 18)
+            (18 19 23 22)
+        );
+    }
+
+    inlet_negative_electrode
+    {
+        type patch;
+        faces
+        (
+            (5 6 10 9)
+            // (9 10 14 13)
+            // (13 14 18 17)
+        );
+    }
+
+    inlet_positive_electrode
+    {
+        type patch;
+        faces
+        (
+            (13 14 18 17)
+        );
+    }
+
+    outlet_negative_electrode
+    {
+        type patch;
+        faces
+        (
+            (4 7 11 8)
+            // (8 11 15 12)
+            // (12 15 19 16)
+        );
+    }
+
+    outlet_positive_electrode
+    {
+        type patch;
+        faces
+        (
+            (12 15 19 16)
+        );
+    }
+
+    negative_cc_tab
+    {
+        type wall;
+        faces
+        (
+            (0 1 2 3)
+        );
+    }
+
+    positive_cc_tab
+    {
+        type wall;
+        faces
+        (
+            (20 21 22 23)
+        );
+    }
+);
+
+// ************************************************************************* //

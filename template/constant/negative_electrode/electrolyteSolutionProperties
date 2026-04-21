@@ -1,0 +1,40 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+  =========                 |
+  \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+   \\    /   O peration     | Website:  https://openfoam.org
+    \\  /    A nd           | Version:  10
+     \\/     M anipulation  |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    format      ascii;
+    class       dictionary;
+    location    "constant/negative_electrode";
+    object      solutionProperties;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+type                {{ type }};
+speciesNumber       {{ speciesNumber }};
+
+vanadiumComponents       {{ vanadiumComponents }};
+vanadiumCompCharges      {{ vanadiumCompCharges }};
+vanadiumOxidationStates  {{ vanadiumOxidationStates }};
+
+molecularDiffusivity     {{ molDiff }};
+
+smallConc           {{ smallConc }};
+minActiveConc       {{ minActiveConc }};
+
+nernstEquation
+{
+    E0                      {{ E0_nernst }};
+    nElectrons              {{ nElectrons }};
+    
+    numeratorCompNames      {{ numNames }};
+    numeratorCompExponents  {{ numExp }};
+    denominatorCompNames    {{ denNames }};
+    denominatorCompExponents {{ denExp }};
+}
+
+// ************************************************************************* //

@@ -1,0 +1,162 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+  =========                 |
+  \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+   \\    /   O peration     | Website:  https://openfoam.org
+    \\  /    A nd           | Version:  10
+     \\/     M anipulation  |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    format      ascii;
+    class       dictionary;
+    object      createBafflesDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+// This is a sample configuration for creating baffles. Notes:
+//
+// - This utility usually converts internal faces into two boundary faces.
+//
+// - It can also convert boundary faces into a boundary face on a different
+//   patch.
+//
+// - Faces are selected to make into baffles by specifying either a faceZone or
+//   a searchableSurface.
+//
+// - Each selection requires two patches to be specified; the owner (or master)
+//   and the neighbour (or slave).
+//
+// - Orientation matters. Internal faces will be split into two faces, and the
+//   face that is oriented in the same direction as the zone or surface will be
+//   added to the owner/master patch. The other face will be added to the
+//   neighbour/slave patch. Boundary faces will be added to the owner patch if
+//   they are oriented in the same direction as the zone or surface, and they
+//   will be added to the neighbour patch otherwise.
+//
+// - Optionally, fields can also be modified. If the added patches are of
+//   non-constrained type then patch-field entries must be provided for all
+//   fields.
+//
+
+// Whether to convert internal faces only, and ignore any boundary faces that
+// are in the selection
+internalFacesOnly true;
+
+// Whether to add patch fields to the field files
+fields false;
+
+// Baffles to create
+baffles
+{
+    // ------------------------------------------ CC Patches ------------------------------------------
+    interface_e_cc_n
+    {
+        // Use a surface to select faces and orientation.
+        type        faceZone;
+        zoneName    electrode_cc_n;
+
+        // Owner patch
+        owner
+        {
+            name            negative_electrode_to_cc;
+            type            mappedWall;
+            sampleMode      nearestPatchFace;
+            sampleRegion    negative_cc;
+            samplePatch     negative_cc_to_electrode;
+
+        }
+
+        // Neighbour patch. Use the same settings as for the owner.
+        neighbour
+        {
+            name            negative_cc_to_electrode;
+            type            mappedWall;
+            sampleMode      nearestPatchFace;
+            sampleRegion    negative_electrode;
+            samplePatch     negative_electrode_to_cc;
+        }
+    }
+
+    interface_e_cc_p
+    {
+        type        faceZone;
+        zoneName    electrode_cc_p;
+
+        owner
+        {
+            name            positive_electrode_to_cc;
+            type            mappedWall;
+            sampleMode      nearestPatchFace;
+            sampleRegion    positive_cc;
+            samplePatch     positive_cc_to_electrode;
+        }
+
+        neighbour
+        {
+            name            positive_cc_to_electrode;
+            type            mappedWall;
+            sampleMode      nearestPatchFace;
+            sampleRegion    positive_electrode;
+            samplePatch     positive_electrode_to_cc;
+        }
+    }
+
+
+    // ------------------------------------------ Separator Patches ------------------------------------------
+    interface_e_s_n
+    {
+        // Use a surface to select faces and orientation.
+        type        faceZone;
+        zoneName    electrode_s_n;
+
+        // Owner patch
+        owner
+        {
+            name            negative_electrode_to_separator;
+            type            mappedWall;
+            sampleMode      nearestPatchFace;
+            sampleRegion    separator;
+            samplePatch     separator_to_negative_electrode;
+        }
+
+        // Neighbour patch. Use the same settings as for the owner.
+        neighbour
+        {
+            name            separator_to_negative_electrode;
+            type            mappedWall;
+            sampleMode      nearestPatchFace;
+            sampleRegion    negative_electrode;
+            samplePatch     negative_electrode_to_separator;
+        }
+    }
+
+    interface_e_s_p
+    {
+        // Use a surface to select faces and orientation.
+        type        faceZone;
+        zoneName    electrode_s_p;
+
+        // Owner patch
+        owner
+        {
+            name        positive_electrode_to_separator;
+            type        mappedWall;
+            sampleMode      nearestPatchFace;
+            sampleRegion    separator;
+            samplePatch     separator_to_positive_electrode;
+        }
+
+        // Neighbour patch. Use the same settings as for the owner.
+        neighbour
+        {
+            name        separator_to_positive_electrode;
+            type        mappedWall;
+            sampleMode      nearestPatchFace;
+            sampleRegion    positive_electrode;
+            samplePatch     positive_electrode_to_separator;
+        }
+    }
+}
+
+
+// ************************************************************************* //
